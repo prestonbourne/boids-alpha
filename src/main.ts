@@ -4,11 +4,12 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { DragControls } from "three/examples/jsm/controls/DragControls";
-import BoidManager from "./boid/manager";
-import { addObstacle } from "./math-utils/addObstacle";
-import { Obstacle } from "./math-utils/obstacle";
+import { BoidManager } from "./models/boid/manager";
+import { addObstacle } from "./models/obstacle/addObstacle";
+import { Obstacle } from "./models/obstacle/obstacle";
 import { GUI } from "dat.gui";
 
+const SANDBOX_WIDTH = 200;
 let scene: THREE.Scene;
 let camera: THREE.PerspectiveCamera;
 let renderer: THREE.WebGLRenderer;
@@ -41,6 +42,15 @@ function init() {
   controls = new OrbitControls(camera, renderer.domElement);
   controls.minDistance = 100;
   controls.maxDistance = 1000;
+
+
+  const gui = new GUI();
+  gui.add(
+    { addObstacle: addObstacle.bind(null, obstacles, scene, 100, 100, 100, 100) },
+    "addObstacle"
+  );
+
+
 
   // WORLD OBSTACLES
   let hasObstacles = true;
@@ -75,30 +85,39 @@ function init() {
   const lightHelper = new THREE.PointLightHelper(lure);
   scene.add(lightHelper);
 
+  // BOIDS
+
+  boidManager = new BoidManager({
+    obstacles,
+    boidTerritoryRadius: SANDBOX_WIDTH / 2,
+    target: lure,
+  });
+
+  const boids = boidManager.createBoids({
+    count: 125,
+    color: 0xf65ff,
+    followTarget: true,
+  });
+
+  boids.forEach((b) => scene.add(b.mesh));
+
+  // const gui = new GUI();
+  // const boidsUIFolder = gui.addFolder("Boids");
+
+  /**
+   * draggable cube that boids can follow
+   */
+
   // const geometry = new THREE.BoxGeometry(30, 30, 30);
   // const material = new THREE.MeshBasicMaterial({ color: 0xffff00 });
   // const cube = new THREE.Mesh(geometry, material);
   // scene.add(cube);
 
-  // BOIDS
-  const numberOfBoids = 300;
-  boidManager = new BoidManager(scene, numberOfBoids, obstacles, lure);
-  boidManager.boids.forEach((boid) => {
-    scene.add(boid.mesh);
-  });
-
-  const gui = new GUI()
-  const boidsUIFolder = gui.addFolder('Boids')
-  
-
-
-
-
   // const dragControls = new DragControls([cube], camera, renderer.domElement);
   // dragControls.activate();
   // dragControls.addEventListener("dragstart", function (event) {
-  //   controls.enabled = false
-  //   console.log(event.object);
+  //   controls.enabled = false;
+
   // });
 
   // CLOCK
@@ -118,7 +137,10 @@ function init() {
   // // pass1.goWild = true
   // composer.addPass(pass1)
   // pass1.renderToScreen = true
+
 }
+
+//UI
 
 // loop vars
 let counter = 0;

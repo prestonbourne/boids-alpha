@@ -1,6 +1,7 @@
 import * as THREE from "three";
-import { sphereCastDirections } from "../math-utils/sphereCastDirections";
-import { Obstacle } from "../math-utils/obstacle";
+import { sphereCastDirections } from "../../mathUtils/sphereCastDirections";
+import { Obstacle } from "../obstacle/obstacle";
+import { BoidParams } from "./types";
 
 const minSpeed = 1;
 const maxSpeed = 5;
@@ -23,8 +24,7 @@ const boundaryRadius = 370;
 export class Boid {
   private wanderCounter: number;
   private counter: number;
-  private scene: any;
-  public mesh: any;
+  public mesh: THREE.Group<THREE.Object3DEventMap>;
   private geometry: THREE.ConeGeometry;
   private velocity: THREE.Vector3;
   private target: any;
@@ -35,17 +35,13 @@ export class Boid {
   private arrows: THREE.ArrowHelper[];
   private wanderTarget: THREE.Vector3;
 
-  constructor(
-    scene: any,
-    target: any,
-    position: THREE.Vector3,
-    quaternion: THREE.Quaternion | null,
-    color: THREE.ColorRepresentation | null,
-    followTarget = false
-  ) {
-    
-    this.scene = scene;
-    const { mesh, geometry } = this.getBoid(position, quaternion, color);
+  constructor({
+    target,
+    position,
+    color,
+    followTarget,
+  }: BoidParams) {
+    const { mesh, geometry } = this.getBoid(position, color);
 
     this.mesh = mesh;
     this.geometry = geometry;
@@ -78,12 +74,10 @@ export class Boid {
     this.counter = 0;
     this.wanderCounter = 0;
     this.arrows = [];
-    
   }
 
   getBoid(
     position = new THREE.Vector3(0, 0, 0),
-    quaternion: THREE.Quaternion | null,
     color: THREE.ColorRepresentation | null
   ) {
     if (color === null) {
@@ -115,9 +109,6 @@ export class Boid {
     mesh.add(new THREE.Mesh(geometry, meshMaterial));
 
     mesh.position.copy(position);
-    if (quaternion) {
-      mesh.quaternion.copy(quaternion);
-    }
 
     return { mesh, geometry };
   }
@@ -186,24 +177,24 @@ export class Boid {
       visionRange
     );
 
-    if (this.debug) {
-      const arrow = new THREE.ArrowHelper(
-        raycaster.ray.direction,
-        raycaster.ray.origin,
-        50,
-        0xff0000
-      );
-      if (this.counter % 50 === 0) {
-        arrow.name = Math.random().toString(36).substring(2, 15);
-        this.arrows.push(arrow);
-        this.scene.add(arrow);
-        if (this.arrows.length > 3) {
-          const toBeRemoved = this.arrows.shift();
-          if (!toBeRemoved) return;
-          this.scene.remove(this.scene.getObjectByName(toBeRemoved.name));
-        }
-      }
-    }
+    // if (this.debug) {
+    //   const arrow = new THREE.ArrowHelper(
+    //     raycaster.ray.direction,
+    //     raycaster.ray.origin,
+    //     50,
+    //     0xff0000
+    //   );
+    //   if (this.counter % 50 === 0) {
+    //     arrow.name = Math.random().toString(36).substring(2, 15);
+    //     this.arrows.push(arrow);
+    //     this.scene.add(arrow);
+    //     if (this.arrows.length > 3) {
+    //       const toBeRemoved = this.arrows.shift();
+    //       if (!toBeRemoved) return;
+    //       this.scene.remove(this.scene.getObjectByName(toBeRemoved.name));
+    //     }
+    //   }
+    // }
 
     // obstacle meshes are Group, and the first child is the mesh we want to ray-trace
     const collisionResults = raycaster.intersectObjects(
@@ -268,7 +259,7 @@ export class Boid {
   separation(delta: number, neighbours: Boid[], range = 30) {
     const steerVector = new THREE.Vector3();
 
-    var neighbourInRangeCount = 0;
+    let neighbourInRangeCount = 0;
 
     neighbours.forEach((neighbour) => {
       // skip same object
@@ -322,7 +313,7 @@ export class Boid {
       averageDirection.multiplyScalar(maxSpeed);
 
       steerVector = averageDirection.sub(this.velocity);
-      var maxForce = delta * 5;
+      let maxForce = delta * 5;
       steerVector.clampLength(0, maxForce);
     }
 
@@ -360,7 +351,7 @@ export class Boid {
     }
   }
 
-  rndCoord(range = boundaryRadius/2) {
+  rndCoord(range = boundaryRadius / 2) {
     return (Math.random() - 0.5) * range * 2;
   }
   wander(delta: number) {
