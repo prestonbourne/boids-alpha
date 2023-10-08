@@ -1,12 +1,17 @@
 import { TransformControls } from "three/examples/jsm/controls/TransformControls.js";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { Simulator } from "../simulator";
+import { DragControls } from "three/examples/jsm/controls/DragControls.js";
+import { SimulationObject } from "../types";
+import * as THREE from "three";
 
-export class UserControls {
+export class UserControls implements SimulationObject {
   private static instance: UserControls;
 
   public readonly transformControls: TransformControls;
   public readonly orbitControls: OrbitControls;
+  public readonly dragControls: DragControls;
+  private readonly cursorLocation: THREE.Vector2;
 
   private constructor({ userCamera, renderer }: Simulator) {
     this.orbitControls = new OrbitControls(userCamera, renderer.domElement);
@@ -19,12 +24,38 @@ export class UserControls {
     );
 
     this.transformControls.addEventListener("dragging-changed", (e) => {
-      console.log(e);
       this.orbitControls.enabled = !e.value;
     });
 
+    this.cursorLocation = new THREE.Vector2();
+
+    window.addEventListener("mousemove", this.handleMouseMove.bind(this));
     window.addEventListener("keydown", this.onKeyDown.bind(this));
     window.addEventListener("keyup", this.onKeyUp.bind(this));
+  }
+
+  private handleMouseMove(event: MouseEvent) {
+    const normalizedX = (event.clientX / window.innerWidth) * 2 - 1;
+    const normalizedY = (event.clientY / window.innerHeight) * 2 + 1;
+
+    this.cursorLocation.x = normalizedX;
+    this.cursorLocation.y = normalizedY;
+  }
+
+  public handleObjectSelection(
+    camera: THREE.Camera,
+    children: THREE.Object3D[],
+    scene: THREE.Scene
+  ) {
+    const raycaster = new THREE.Raycaster();
+
+    raycaster.setFromCamera(this.cursorLocation, camera);
+
+
+    const intersections = raycaster.intersectObjects(children, true);
+    
+    if(intersections.length === 0) return
+    console.log(intersections)
   }
 
   public static getInstance(simulator: Simulator): UserControls {
@@ -38,7 +69,7 @@ export class UserControls {
     const mode = this.getMode(event);
 
     if (mode === "invalid") return;
-    this.transformControls.setMode(mode)
+    this.transformControls.setMode(mode);
   }
 
   private getMode(event: KeyboardEvent) {
@@ -60,5 +91,9 @@ export class UserControls {
       default:
         break;
     }
+  }
+
+  public update(simulator: Simulator) {
+    this.handleObjectSelection(simulator.userCamera, simulator.scene.children, simulator.scene);
   }
 }

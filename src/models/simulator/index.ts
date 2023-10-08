@@ -4,25 +4,27 @@ import { Obstacle } from "../obstacle";
 import { BoidManager } from "../boid/manager";
 import { UserControls } from "../userControls";
 import * as THREE from "three";
+import { SimulationObject } from "../types";
 
 export class Simulator {
   private static instance: Simulator;
 
-  private readonly scene: THREE.Scene;
+  public readonly scene: THREE.Scene;
   renderer: THREE.WebGLRenderer;
   private dragControls: DragControls;
   public userCamera: THREE.PerspectiveCamera;
-  private clock: THREE.Clock;
+  public readonly clock: THREE.Clock;
   private isPaused: boolean;
 
   controls: UserControls
   private objects: Obstacle[];
-  private boidManagers: BoidManager[];
+  private simObjects: SimulationObject[]
 
   private constructor(scene: THREE.Scene) {
+    this.clock = new THREE.Clock();
     this.isPaused = false
     this.objects = [];
-    this.boidManagers = []
+    this.simObjects = []
     this.scene = scene;
   }
 
@@ -52,7 +54,7 @@ export class Simulator {
 
   private initControls(){
     this.controls = UserControls.getInstance(this)
-    this.scene.add(this.controls.transformControls)
+    //this.scene.add(this.controls.transformControls)
   }
 
   private initRenderer(canvasRef: HTMLCanvasElement) {
@@ -60,9 +62,9 @@ export class Simulator {
       antialias: true,
       canvas: canvasRef,
     });
-    this.renderer.setSize(window.innerWidth, window.innerHeight);
 
     window.addEventListener("resize", () => {
+      console.log(canvasRef.width)
       const width = canvasRef.width
       const height = canvasRef.height;
       this.renderer.setPixelRatio(window.devicePixelRatio);
@@ -90,7 +92,7 @@ export class Simulator {
 
     this.initControls()
 
-    this.clock = new THREE.Clock();
+    
 
     const boidManager = new BoidManager({
       obstacles: this.objects,
@@ -99,19 +101,19 @@ export class Simulator {
     
 
 
-    const newObs = addObstacle(
-      this.objects,
-      this.scene,
-      100,
-      100,
-      100,
-      0x555555,
-      0,
-      0,
-      0
-    );
+    // const newObs = addObstacle(
+    //   this.objects,
+    //   this.scene,
+    //   100,
+    //   100,
+    //   100,
+    //   0x555555,
+    //   0,
+    //   0,
+    //   0
+    // );
     
-    this.controls.transformControls.attach(newObs.mesh);
+   // this.controls.transformControls.attach(newObs.mesh);
    
    
 
@@ -119,27 +121,27 @@ export class Simulator {
     this.scene.add(new THREE.AmbientLight(0xffffff, 0.8));
 
     const boids = boidManager.createBoids({
-      count: 100,
+      count: 1,
       color: 0xf65ff,
       followTarget: false,
     });
 
     boids.forEach((b) => this.scene.add(b.mesh));
 
-    this.boidManagers.push(boidManager)
+    this.simObjects.push(boidManager)
+    this.simObjects.push(this.controls)
 
     this.runUpdateLoop()
   }
 
   private runUpdateLoop() {
     requestAnimationFrame(this.runUpdateLoop.bind(this));
-    const delta = this.clock.getDelta();
 
     if (this.isPaused === false) {
-      this.boidManagers.forEach((bm) => bm.update(delta));
+      this.simObjects.forEach((bm) => bm.update(this));
 
     }
-
+    
     this.renderer.render(this.scene, this.userCamera);
   }
 }
