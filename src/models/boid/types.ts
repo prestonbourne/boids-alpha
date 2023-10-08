@@ -1,4 +1,4 @@
-import { Obstacle } from "../obstacle/obstacle"
+import { Obstacle } from "../obstacle"
 
 export type BoidParams = {
     target?: THREE.Object3D

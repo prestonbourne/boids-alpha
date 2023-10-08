@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { sphereCastDirections } from "../../mathUtils/sphereCastDirections";
-import { Obstacle } from "../obstacle/obstacle";
+import { Obstacle } from "../obstacle";
 import { BoidParams } from "./types";
 
 const minSpeed = 1;
@@ -27,7 +27,7 @@ export class Boid {
   public mesh: THREE.Group<THREE.Object3DEventMap>;
   private geometry: THREE.ConeGeometry;
   private velocity: THREE.Vector3;
-  private target: any;
+  private target?: THREE.Object3D;
   private acceleration: THREE.Vector3;
   private followTarget: boolean;
   private debug: boolean;
@@ -267,7 +267,7 @@ export class Boid {
 
       const distance = neighbour.mesh.position.distanceTo(this.mesh.position);
       if (distance <= range) {
-        var diff = this.mesh.position.clone().sub(neighbour.mesh.position);
+        const diff = this.mesh.position.clone().sub(neighbour.mesh.position);
         diff.divideScalar(distance); // weight by distance
         steerVector.add(diff);
         neighbourInRangeCount++;
@@ -278,7 +278,7 @@ export class Boid {
       steerVector.divideScalar(neighbourInRangeCount);
       steerVector.normalize();
       steerVector.multiplyScalar(maxSpeed);
-      var maxForce = delta * 5;
+      const maxForce = delta * 5;
       steerVector.clampLength(0, maxForce);
     }
 
@@ -294,7 +294,7 @@ export class Boid {
     let steerVector = new THREE.Vector3();
     const averageDirection = new THREE.Vector3();
 
-    var neighboursInRangeCount = 0;
+    let neighboursInRangeCount = 0;
 
     neighbours.forEach((neighbour) => {
       // skip same object
@@ -313,7 +313,7 @@ export class Boid {
       averageDirection.multiplyScalar(maxSpeed);
 
       steerVector = averageDirection.sub(this.velocity);
-      let maxForce = delta * 5;
+      const maxForce = delta * 5;
       steerVector.clampLength(0, maxForce);
     }
 
@@ -374,7 +374,7 @@ export class Boid {
   }
 
   lookWhereGoing(smoothing = true) {
-    var direction = this.velocity.clone();
+    const direction = this.velocity.clone();
     if (smoothing) {
       if (this.velocitySamples.length == numSamplesForSmoothing) {
         this.velocitySamples.shift();
