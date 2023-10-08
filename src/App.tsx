@@ -10,7 +10,7 @@ function App() {
 
   return (
     <>
-      <ControlPanel />
+      <ControlPanel simulator={simulator} />
       <Canvas simulator={simulator} />
     </>
   );

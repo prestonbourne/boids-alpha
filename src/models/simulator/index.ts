@@ -5,19 +5,21 @@ import { Obstacle } from "../obstacle";
 import { BoidManager } from "../boid/manager";
 import * as THREE from "three";
 
+
 export class Simulator {
   private static instance: Simulator;
 
   private readonly scene: THREE.Scene;
   private renderer: THREE.WebGLRenderer;
+  private dragControls: DragControls;
+  private objects: Obstacle[];
 
   private constructor(scene: THREE.Scene) {
+    this.objects = [];
     this.scene = scene;
   }
 
-  public static getInstance(
-    scene: THREE.Scene,
-  ): Simulator {
+  public static getInstance(scene: THREE.Scene): Simulator {
     if (!Simulator.instance) {
       Simulator.instance = new Simulator(scene);
     }
@@ -25,8 +27,24 @@ export class Simulator {
     return Simulator.instance;
   }
 
+  public addObject() {
+    const newObs = addObstacle(
+      this.objects,
+      this.scene,
+      100,
+      100,
+      100,
+      0x555555,
+      0,
+      0,
+      0
+    );
+
+    this.dragControls.getObjects().push(newObs.mesh);
+  }
+
   public mount(canvasRef: HTMLCanvasElement): void {
-    console.log('Mounting Simulator...')
+    console.log("Mounting Simulator...");
     const SANDBOX_WIDTH = 200;
 
     let camera: THREE.PerspectiveCamera;
@@ -35,8 +53,6 @@ export class Simulator {
     let boidManager: BoidManager;
     let lure: THREE.PointLight;
     let controls: OrbitControls;
-
-    const obstacles: Obstacle[] = [];
 
     const init = () => {
       camera = new THREE.PerspectiveCamera(
@@ -49,8 +65,8 @@ export class Simulator {
 
       this.renderer = new THREE.WebGLRenderer({
         antialias: true,
-        canvas: canvasRef
-      })
+        canvas: canvasRef,
+      });
 
       this.renderer.setSize(window.innerWidth, window.innerHeight);
 
@@ -61,14 +77,74 @@ export class Simulator {
 
       // WORLD OBSTACLES
 
-      addObstacle(obstacles, this.scene, 50, 100, 50, 0xffffff, 100, 100, -200);
-      addObstacle(obstacles, this.scene, 50, 50, 50, 0xffffff, 200, 200, 200);
-      addObstacle(obstacles, this.scene, 100, 50, 50, 0xffffff, -200, 150, 200);
-      addObstacle(obstacles, this.scene, 50, 50, 50, 0xffffff, -150, 150, -200);
-      addObstacle(obstacles, this.scene, 50, 100, 100, 0xa399ee, -20, 300, -20);
-      addObstacle(obstacles, this.scene, 50, 50, 50, 0x555555, 150, -200, 200);
       addObstacle(
-        obstacles,
+        this.objects,
+        this.scene,
+        50,
+        100,
+        50,
+        0xffffff,
+        100,
+        100,
+        -200
+      );
+      addObstacle(
+        this.objects,
+        this.scene,
+        50,
+        50,
+        50,
+        0xffffff,
+        200,
+        200,
+        200
+      );
+      addObstacle(
+        this.objects,
+        this.scene,
+        100,
+        50,
+        50,
+        0xffffff,
+        -200,
+        150,
+        200
+      );
+      addObstacle(
+        this.objects,
+        this.scene,
+        50,
+        50,
+        50,
+        0xffffff,
+        -150,
+        150,
+        -200
+      );
+      addObstacle(
+        this.objects,
+        this.scene,
+        50,
+        100,
+        100,
+        0xa399ee,
+        -20,
+        300,
+        -20
+      );
+      addObstacle(
+        this.objects,
+        this.scene,
+        50,
+        50,
+        50,
+        0x555555,
+        150,
+        -200,
+        200
+      );
+      addObstacle(
+        this.objects,
         this.scene,
         50,
         100,
@@ -79,7 +155,7 @@ export class Simulator {
         -180
       );
       addObstacle(
-        obstacles,
+        this.objects,
         this.scene,
         100,
         50,
@@ -90,7 +166,7 @@ export class Simulator {
         180
       );
       addObstacle(
-        obstacles,
+        this.objects,
         this.scene,
         100,
         50,
@@ -100,7 +176,17 @@ export class Simulator {
         -150,
         -150
       );
-      addObstacle(obstacles, this.scene, 100, 50, 100, 0x555555, 20, -300, -20);
+      addObstacle(
+        this.objects,
+        this.scene,
+        100,
+        50,
+        100,
+        0x555555,
+        20,
+        -300,
+        -20
+      );
 
       // LIGHTS
 
@@ -123,7 +209,7 @@ export class Simulator {
       // BOIDS
 
       boidManager = new BoidManager({
-        obstacles,
+        obstacles: this.objects,
         boidTerritoryRadius: SANDBOX_WIDTH / 2,
       });
 
@@ -147,16 +233,17 @@ export class Simulator {
       // const cube = new THREE.Mesh(geometry, material);
       // scene.add(cube);
 
-      const dragControls = new DragControls(
-        obstacles.map((o) => o.mesh),
+      this.dragControls = new DragControls(
+        this.objects.map((o) => o.mesh),
         camera,
         this.renderer.domElement
       );
-      dragControls.activate();
-      dragControls.addEventListener("dragstart", function () {
+
+      //dragControls.activate();
+      this.dragControls.addEventListener("dragstart", function () {
         controls.enabled = false;
       });
-      dragControls.addEventListener("dragend", function () {
+      this.dragControls.addEventListener("dragend", function () {
         controls.enabled = true;
       });
 
