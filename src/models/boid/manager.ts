@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { Boid } from ".";
-import { Obstacle } from "../obstacle/obstacle";
+import { Obstacle } from "../obstacle";
 import { CreateBoidsParams, BoidManagerParams } from "./types";
 
 export class BoidManager {
@@ -20,10 +20,10 @@ export class BoidManager {
     this.currentTarget = target;
   }
 
-  createBoids({ count: boidCount, color, followTarget }: CreateBoidsParams) {
+  createBoids({ count, color, followTarget }: CreateBoidsParams) {
     const boidsResult: Boid[] = [];
 
-    for (let i = 0; i < boidCount; i++) {
+    for (let i = 0; i < count; i++) {
       const randomX = Math.random() * this.boidTerritoryRadius;
       const randomY = Math.random() * this.boidTerritoryRadius;
       const randomZ = Math.random() * this.boidTerritoryRadius;

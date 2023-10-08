@@ -1,0 +1,9 @@
+.ControlPanel {
+    padding: 2rem;
+    
+}
+
+.ControlPanel > div {
+    padding: 0;
+    margin: 0;
+}
