@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { Boid } from ".";
-import { Obstacle } from "../obstacle/obstacle";
+import { Obstacle } from "../obstacle";
 import { CreateBoidsParams, BoidManagerParams } from "./types";
 
 export class BoidManager {

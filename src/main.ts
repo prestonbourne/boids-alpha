@@ -7,7 +7,6 @@ import { DragControls } from "three/examples/jsm/controls/DragControls";
 import { BoidManager } from "./models/boid/manager";
 import { addObstacle } from "./models/obstacle/addObstacle";
 import { Obstacle } from "./models/obstacle/obstacle";
-import { GUI } from "dat.gui";
 
 const SANDBOX_WIDTH = 200;
 let scene: THREE.Scene;
@@ -22,6 +21,7 @@ let controls: OrbitControls;
 const obstacles: Obstacle[] = [];
 
 function init() {
+
   scene = new THREE.Scene();
   camera = new THREE.PerspectiveCamera(
     75,
@@ -43,14 +43,13 @@ function init() {
   controls.minDistance = 100;
   controls.maxDistance = 1000;
 
-
-  const gui = new GUI();
-  gui.add(
-    { addObstacle: addObstacle.bind(null, obstacles, scene, 100, 100, 100, 100) },
-    "addObstacle"
-  );
-
-
+  // const gui = new GUI();
+  // gui.add(
+  //   {
+  //     addObstacle: addObstacle.bind(null, obstacles, scene, 100, 100, 100, 100),
+  //   },
+  //   "addObstacle"
+  // );
 
   // WORLD OBSTACLES
   let hasObstacles = true;
@@ -90,13 +89,13 @@ function init() {
   boidManager = new BoidManager({
     obstacles,
     boidTerritoryRadius: SANDBOX_WIDTH / 2,
-    target: lure,
+   
   });
 
   const boids = boidManager.createBoids({
-    count: 125,
+    count: 10,
     color: 0xf65ff,
-    followTarget: true,
+    followTarget: false,
   });
 
   boids.forEach((b) => scene.add(b.mesh));
@@ -113,12 +112,18 @@ function init() {
   // const cube = new THREE.Mesh(geometry, material);
   // scene.add(cube);
 
-  // const dragControls = new DragControls([cube], camera, renderer.domElement);
-  // dragControls.activate();
-  // dragControls.addEventListener("dragstart", function (event) {
-  //   controls.enabled = false;
-
-  // });
+  const dragControls = new DragControls(
+    obstacles.map((o) => o.mesh),
+    camera,
+    renderer.domElement
+  );
+  dragControls.activate();
+  dragControls.addEventListener("dragstart", function (event) {
+    controls.enabled = false;
+  });
+  dragControls.addEventListener("dragend", function (event) {
+    controls.enabled = true;
+  });
 
   // CLOCK
   clock = new THREE.Clock();
@@ -137,7 +142,6 @@ function init() {
   // // pass1.goWild = true
   // composer.addPass(pass1)
   // pass1.renderToScreen = true
-
 }
 
 //UI

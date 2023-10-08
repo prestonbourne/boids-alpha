@@ -1,4 +1,4 @@
-import { Obstacle } from "./obstacle";
+import { Obstacle } from ".";
 
 /**
  * Adds a simple box obstacle to the scene.
@@ -8,7 +8,7 @@ import { Obstacle } from "./obstacle";
 
 export function addObstacle(
   obstacles: Obstacle[],
-  scene: any,
+  scene: THREE.Scene,
   width: number,
   height: number,
   depth: number,
