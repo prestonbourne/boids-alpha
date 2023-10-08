@@ -6,11 +6,13 @@ type CanvasProps = {
 };
 
 export function Canvas({ simulator }: CanvasProps) {
+
   const mountSimulator = useCallback(
     (ref: HTMLCanvasElement | null) => {
+      console.log('here',ref)
       if (!ref) {
         throw Error(
-          "Could not get Canvas Element needed to mount theejs engine"
+          "Could not get Canvas Element needed to mount threejs engine"
         );
       }
       simulator.mount(ref);
