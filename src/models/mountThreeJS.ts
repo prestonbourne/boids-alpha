@@ -6,7 +6,6 @@ import { BoidManager } from "./boid/manager";
 import * as THREE from 'three'
 
 export function mountThreeJS(canvasRef: HTMLCanvasElement) {
-    console.log('from mount', canvasRef)
   const SANDBOX_WIDTH = 200;
   let scene: THREE.Scene;
   let camera: THREE.PerspectiveCamera;
