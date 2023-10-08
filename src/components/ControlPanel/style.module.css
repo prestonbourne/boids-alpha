@@ -1,9 +1,7 @@
 .ControlPanel {
-    padding: 2rem;
-    
+    min-width: 15%;
 }
 
 .ControlPanel > div {
-    padding: 0;
-    margin: 0;
+    padding: 2rem;
 }

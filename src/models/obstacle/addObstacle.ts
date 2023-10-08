@@ -28,4 +28,5 @@ export function addObstacle(
   });
   scene.add(obs1.mesh);
   obstacles.push(obs1);
+  return obs1
 }
