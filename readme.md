@@ -41,3 +41,21 @@ If you are developing a production application, we recommend updating the config
 - Replace `plugin:@typescript-eslint/recommended` to `plugin:@typescript-eslint/recommended-type-checked` or `plugin:@typescript-eslint/strict-type-checked`
 - Optionally add `plugin:@typescript-eslint/stylistic-type-checked`
 - Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and add `plugin:react/recommended` & `plugin:react/jsx-runtime` to the `extends` list
+
+## Todo
+
+### Camera slow pan after idle
+
+```ts
+if (slowPanEnabled) {
+   this.userCamera.lookAt(light.position);
+   this.userCamera.position.x = Math.sin(counter) * 500;
+   this.userCamera.position.z = Math.cos(counter) * 500;
+}
+
+if (lure) {
+   lure.position.x = Math.sin(counter * 5) * 400;
+   lure.position.y = Math.cos(counter * 10) * 400;
+   lure.position.z = Math.cos(counter * 15) * 400;
+}
+```

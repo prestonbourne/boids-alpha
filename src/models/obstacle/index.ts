@@ -16,26 +16,14 @@ export class Obstacle {
     const geometry = new THREE.BoxGeometry(width, height, depth, 1, 1, 1);
 
     this.mesh = new THREE.Group();
-    const lineMaterial = new THREE.LineBasicMaterial({
-      color: 0xffffff,
-      transparent: true,
-      opacity: 0.05,
-    });
+
     const meshMaterial = new THREE.MeshLambertMaterial({
       color,
-      transparent: true,
-      opacity: 0.9,
-      wireframe: false,
-      depthWrite: false,
       blending: THREE.NormalBlending,
     });
-    this.mesh.add(new THREE.Mesh(geometry, meshMaterial));
-    this.mesh.add(
-      new THREE.LineSegments(
-        new THREE.WireframeGeometry(geometry),
-        lineMaterial
-      )
-    );
+    const mesh = new THREE.Mesh(geometry, meshMaterial);
+    mesh.userData = { type: "obstacle" };
+    this.mesh.add(mesh);
 
     this.mesh.position.set(xCoord, yCoord, zCoord);
   }

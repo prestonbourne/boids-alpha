@@ -2,18 +2,16 @@ import * as THREE from "three";
 import { Boid } from ".";
 import { Obstacle } from "../obstacle";
 import { CreateBoidsParams, BoidManagerParams } from "./types";
+import { SimulationObject } from "../types";
+import { Simulator } from "../simulator";
 
-export class BoidManager {
+export class BoidManager implements SimulationObject {
   private obstacles: Obstacle[];
   private boids: Boid[];
   private currentTarget?: THREE.Object3D;
   public readonly boidTerritoryRadius: number;
 
-  constructor({
-    obstacles,
-    boidTerritoryRadius,
-    target,
-  }: BoidManagerParams) {
+  constructor({ obstacles, boidTerritoryRadius, target }: BoidManagerParams) {
     this.boids = [];
     this.obstacles = obstacles;
     this.boidTerritoryRadius = boidTerritoryRadius;
@@ -43,7 +41,9 @@ export class BoidManager {
 
     return boidsResult;
   }
-  update(delta: number) {
+  update(simulator: Simulator) {
+    const delta = simulator.clock.getDelta();
+
     this.boids.forEach((boid) => {
       boid.update(delta, this.boids, this.obstacles);
     });

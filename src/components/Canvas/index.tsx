@@ -1,5 +1,6 @@
 import { useCallback } from "react";
 import { Simulator } from "../../models/simulator";
+import s from "./style.module.css";
 
 type CanvasProps = {
   simulator: Simulator;
@@ -10,7 +11,7 @@ export function Canvas({ simulator }: CanvasProps) {
     (ref: HTMLCanvasElement | null) => {
       if (!ref) {
         throw Error(
-          "Could not get Canvas Element needed to mount theejs engine"
+          "Could not get Canvas Element needed to mount threejs engine"
         );
       }
       simulator.mount(ref);
@@ -18,7 +19,11 @@ export function Canvas({ simulator }: CanvasProps) {
     [simulator]
   );
 
-  return <canvas ref={mountSimulator}></canvas>;
+  return (
+    <div className={s.canvasContainer}>
+      <canvas ref={mountSimulator}></canvas>
+    </div>
+  );
 }
 
 export default Canvas;
