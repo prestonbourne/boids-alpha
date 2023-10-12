@@ -21,8 +21,9 @@ export class Obstacle {
       color,
       blending: THREE.NormalBlending,
     });
-    this.mesh.add(new THREE.Mesh(geometry, meshMaterial));
-
+    const mesh = new THREE.Mesh(geometry, meshMaterial);
+    mesh.userData = { type: "obstacle" };
+    this.mesh.add(mesh);
 
     this.mesh.position.set(xCoord, yCoord, zCoord);
   }

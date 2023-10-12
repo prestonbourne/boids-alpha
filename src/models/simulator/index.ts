@@ -5,9 +5,13 @@ import { BoidManager } from "../boid/manager";
 import { UserControls } from "../userControls";
 import * as THREE from "three";
 import { SimulationObject } from "../types";
+import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+
 
 export class Simulator {
   private static instance: Simulator;
+  public composer: EffectComposer;
 
   public readonly scene: THREE.Scene;
   renderer: THREE.WebGLRenderer;
@@ -16,15 +20,15 @@ export class Simulator {
   public readonly clock: THREE.Clock;
   private isPaused: boolean;
 
-  controls: UserControls
+  controls: UserControls;
   private objects: Obstacle[];
-  private simObjects: SimulationObject[]
+  private simObjects: SimulationObject[];
 
   private constructor(scene: THREE.Scene) {
     this.clock = new THREE.Clock();
-    this.isPaused = false
+    this.isPaused = false;
     this.objects = [];
-    this.simObjects = []
+    this.simObjects = [];
     this.scene = scene;
   }
 
@@ -52,9 +56,9 @@ export class Simulator {
     this.dragControls?.getObjects().push(newObs.mesh);
   }
 
-  private initControls(){
-    this.controls = UserControls.getInstance(this)
-    //this.scene.add(this.controls.transformControls)
+  private initControls() {
+    this.controls = UserControls.getInstance(this);
+    this.scene.add(this.controls.transformControls)
   }
 
   private initRenderer(canvasRef: HTMLCanvasElement) {
@@ -63,43 +67,39 @@ export class Simulator {
       canvas: canvasRef,
     });
 
-    window.addEventListener("resize", () => {
-      console.log(canvasRef.width)
-      const width = canvasRef.width
-      const height = canvasRef.height;
-      this.renderer.setPixelRatio(window.devicePixelRatio);
+    const updateRendererSize = () => {
+      const { innerWidth: width, innerHeight: height } = window;
       this.renderer.setSize(width, height);
       this.userCamera.aspect = width / height;
       this.userCamera.updateProjectionMatrix();
-    });
+    };
+    this.composer = new EffectComposer(this.renderer);
+    this.composer.addPass(new RenderPass(this.scene, this.userCamera));
+    
+    updateRendererSize();
+    window.addEventListener("resize", updateRendererSize);
   }
-
 
   public mount(canvasRef: HTMLCanvasElement): void {
     console.log("Mounting Simulator...");
-    this.initRenderer(canvasRef);
 
     const SANDBOX_WIDTH = 200;
 
     this.userCamera = new THREE.PerspectiveCamera(
       75,
-      window.innerWidth / window.innerHeight,
+      canvasRef.clientWidth / canvasRef.clientHeight,
       0.1,
       10000
     );
 
     this.userCamera.position.z = 500;
-
-    this.initControls()
-
-    
+    this.initRenderer(canvasRef);
+    this.initControls();
 
     const boidManager = new BoidManager({
       obstacles: this.objects,
       boidTerritoryRadius: SANDBOX_WIDTH / 2,
     });
-    
-
 
     // const newObs = addObstacle(
     //   this.objects,
@@ -112,26 +112,24 @@ export class Simulator {
     //   0,
     //   0
     // );
-    
-   // this.controls.transformControls.attach(newObs.mesh);
-   
-   
+
+    // this.controls.transformControls.attach(newObs.mesh);
 
     //ambient light
     this.scene.add(new THREE.AmbientLight(0xffffff, 0.8));
 
     const boids = boidManager.createBoids({
-      count: 1,
+      count: 15,
       color: 0xf65ff,
       followTarget: false,
     });
 
     boids.forEach((b) => this.scene.add(b.mesh));
 
-    this.simObjects.push(boidManager)
-    this.simObjects.push(this.controls)
+    this.simObjects.push(boidManager);
+    this.simObjects.push(this.controls);
 
-    this.runUpdateLoop()
+    this.runUpdateLoop();
   }
 
   private runUpdateLoop() {
@@ -139,10 +137,8 @@ export class Simulator {
 
     if (this.isPaused === false) {
       this.simObjects.forEach((bm) => bm.update(this));
-
     }
+    this.composer.render();
     
-    this.renderer.render(this.scene, this.userCamera);
   }
 }
-// transformControls.addEventListener("change", this.runUpdateLoop);

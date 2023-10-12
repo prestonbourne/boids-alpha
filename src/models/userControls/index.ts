@@ -2,6 +2,7 @@ import { TransformControls } from "three/examples/jsm/controls/TransformControls
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { Simulator } from "../simulator";
 import { DragControls } from "three/examples/jsm/controls/DragControls.js";
+import { ObjectHighlighter } from "./objectHighlighter";
 import { SimulationObject } from "../types";
 import * as THREE from "three";
 
@@ -11,7 +12,10 @@ export class UserControls implements SimulationObject {
   public readonly transformControls: TransformControls;
   public readonly orbitControls: OrbitControls;
   public readonly dragControls: DragControls;
-  private readonly cursorLocation: THREE.Vector2;
+  private readonly cursorLocation: THREE.Vector2 = new THREE.Vector2();
+  private readonly highlighter: ObjectHighlighter = new ObjectHighlighter();
+  private selectedObjects: THREE.Object3D[] = [];
+  private hoveredObject: THREE.Object3D | null = null;
 
   private constructor({ userCamera, renderer }: Simulator) {
     this.orbitControls = new OrbitControls(userCamera, renderer.domElement);
@@ -27,35 +31,55 @@ export class UserControls implements SimulationObject {
       this.orbitControls.enabled = !e.value;
     });
 
-    this.cursorLocation = new THREE.Vector2();
-
     window.addEventListener("mousemove", this.handleMouseMove.bind(this));
     window.addEventListener("keydown", this.onKeyDown.bind(this));
+    window.addEventListener("click", this.handleObjectSelection.bind(this));
+    window.addEventListener("dblclick", this.removeSelectedObjects.bind(this));
+
     window.addEventListener("keyup", this.onKeyUp.bind(this));
+  }
+
+  private removeSelectedObjects() {
+    this.selectedObjects = [];
+    this.transformControls.detach();
   }
 
   private handleMouseMove(event: MouseEvent) {
     const normalizedX = (event.clientX / window.innerWidth) * 2 - 1;
-    const normalizedY = (event.clientY / window.innerHeight) * 2 + 1;
+    const normalizedY = -(event.clientY / window.innerHeight) * 2 + 1;
 
     this.cursorLocation.x = normalizedX;
     this.cursorLocation.y = normalizedY;
   }
 
-  public handleObjectSelection(
+  private handleObjectHovering(
     camera: THREE.Camera,
-    children: THREE.Object3D[],
-    scene: THREE.Scene
+    children: THREE.Object3D[]
   ) {
     const raycaster = new THREE.Raycaster();
-
     raycaster.setFromCamera(this.cursorLocation, camera);
-
-
     const intersections = raycaster.intersectObjects(children, true);
-    
-    if(intersections.length === 0) return
-    console.log(intersections)
+    if (intersections.length === 0) {
+      this.hoveredObject = null;
+      this.highlighter.setHoveredObject(this.hoveredObject);
+      return;
+    }
+
+    if (intersections[0].object.userData.type === "obstacle") {
+      const selectedObject = intersections[0].object;
+      this.hoveredObject = selectedObject;
+    } else {
+      this.hoveredObject = null;
+    }
+
+    this.highlighter.setHoveredObject(this.hoveredObject);
+  }
+
+  private handleObjectSelection() {
+    if (!this.hoveredObject) return;
+
+    this.transformControls.attach(this.hoveredObject);
+    this.selectedObjects.push(this.hoveredObject);
   }
 
   public static getInstance(simulator: Simulator): UserControls {
@@ -94,6 +118,6 @@ export class UserControls implements SimulationObject {
   }
 
   public update(simulator: Simulator) {
-    this.handleObjectSelection(simulator.userCamera, simulator.scene.children, simulator.scene);
+    this.handleObjectHovering(simulator.userCamera, simulator.scene.children);
   }
 }

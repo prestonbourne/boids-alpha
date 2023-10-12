@@ -1,13 +1,12 @@
 import { useCallback } from "react";
 import { Simulator } from "../../models/simulator";
-import s from './style.module.css'
+import s from "./style.module.css";
 
 type CanvasProps = {
   simulator: Simulator;
 };
 
 export function Canvas({ simulator }: CanvasProps) {
-
   const mountSimulator = useCallback(
     (ref: HTMLCanvasElement | null) => {
       if (!ref) {
@@ -20,7 +19,11 @@ export function Canvas({ simulator }: CanvasProps) {
     [simulator]
   );
 
-  return <canvas className={s.canvas} ref={mountSimulator}></canvas>;
+  return (
+    <div className={s.canvasContainer}>
+      <canvas ref={mountSimulator}></canvas>
+    </div>
+  );
 }
 
 export default Canvas;
